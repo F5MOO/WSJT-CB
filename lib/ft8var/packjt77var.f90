@@ -692,7 +692,8 @@ subroutine unpack77var(c77,nrx,msg,unpk77_success,nthr)
        ispace=index(call_2,' '); if(ispace.gt.0 .and. ispace.lt.12) unpk77_success=.false.
        islash=index(call_2,'/'); if(islash.eq.1 .or. islash.eq.2 .or. islash.eq.11 .or. (islash.eq.10 .and. &
        call_2(11:11).gt.'@' .and. call_2(11:11).lt.'[' .and. call_2(11:11).ne.'P')) unpk77_success=.false.
-       if(islash.lt.6 .and. call_2(11:11).lt.':' .and. call_2(11:11).gt.'/') unpk77_success=.false.
+       if(islash.lt.6 .and. call_2(11:11).lt.':' .and. call_2(11:11).gt.'/' .and. &
+           .not.is_complete_cb_callsign(call_2)) unpk77_success=.false.
      endif
      if(msg(1:3).ne.'CQ ') then
        if(call_1(1:1).lt.':' .and. call_1(1:1).gt.'/' .and. call_1(2:2).lt.':' .and.call_1(2:2).gt.'/') then
@@ -702,7 +703,8 @@ subroutine unpack77var(c77,nrx,msg,unpk77_success,nthr)
          ispace=index(call_1,' '); if(ispace.gt.0 .and. ispace.lt.12) unpk77_success=.false.
          islash=index(call_1,'/'); if(islash.eq.1 .or. islash.eq.2 .or. islash.eq.11 .or. (islash.eq.10 .and. &
          call_1(11:11).gt.'@' .and. call_1(11:11).lt.'[' .and. call_1(11:11).ne.'P')) unpk77_success=.false.
-         if(islash.lt.6 .and. call_1(11:11).lt.':' .and. call_1(11:11).gt.'/') unpk77_success=.false.
+         if(islash.lt.6 .and. call_1(11:11).lt.':' .and. call_1(11:11).gt.'/' .and. &
+           .not.is_complete_cb_callsign(call_1)) unpk77_success=.false.
        endif
      endif
      nmsglen=len_trim(msg)

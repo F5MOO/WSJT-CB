@@ -42,6 +42,61 @@ namespace Radio
     // DXCC Entity prefix used as a suffix
     QRegularExpression non_prefix_suffix {R"(\A([0-9AMPQR]|QRP|F[DF]|[AM]M|L[HT]|LGT)\z)"};
 
+    // Extended CB grammar (keep in sync with lib/ft8var/cb_callsigns.f90):
+    //   call = A + B + C, total length 3..11, characters 0-9 A-Z only
+    //   A : starts with a digit, 1-3 digits and 0-2 letters (any order)
+    //   B : starts and ends with a letter, 1-3 letters and 0-2 digits
+    //   C : 1-2 characters, each a digit or a letter
+    // Digit-leading amateur-style calls (digit, 1-2 letters, digit, 0-3
+    // letters, e.g. 9A1AA or 3DA0XX) are never CB calls.
+    QRegularExpression cb_extended_alphabet_re {R"(^[0-9A-Z]{3,11}$)"};
+    QRegularExpression cb_amateur_like_re {R"(^[0-9][A-Z]{1,2}[0-9][A-Z]{0,3}$)"};
+
+    bool cb_segment_a (QString const& s)
+    {
+      if (s.isEmpty () || !s[0].isDigit ()) return false;
+      int digits {0}, letters {0};
+      for (auto const c : s) { if (c.isDigit ()) ++digits; else ++letters; }
+      return digits >= 1 && digits <= 3 && letters <= 2;
+    }
+
+    bool cb_segment_b (QString const& s)
+    {
+      if (s.isEmpty () || !s[0].isLetter () || !s[s.size () - 1].isLetter ()) return false;
+      int digits {0}, letters {0};
+      for (auto const c : s) { if (c.isDigit ()) ++digits; else ++letters; }
+      return letters >= 1 && letters <= 3 && digits <= 2;
+    }
+
+    bool extended_cb_match (QString const& normalized)
+    {
+      if (!cb_extended_alphabet_re.match (normalized).hasMatch ()
+          || !normalized[0].isDigit ()
+          || cb_amateur_like_re.match (normalized).hasMatch ())
+        {
+          return false;
+        }
+      auto const n = normalized.size ();
+      for (int i = 1; i <= n - 2; ++i)                // A = [0, i)
+        {
+          if (!cb_segment_a (normalized.left (i))) continue;
+          for (int j = i + 1; j <= n - 1; ++j)        // B = [i, j), C = [j, n)
+            {
+              if (n - j > 2) continue;
+              if (cb_segment_b (normalized.mid (i, j - i))) return true;
+            }
+        }
+      return false;
+    }
+
+    QString extended_cb_prefix (QString const& normalized)
+    {
+      if (!extended_cb_match (normalized)) return {};
+      int digits {0};
+      while (digits < normalized.size () && normalized[digits].isDigit ()) ++digits;
+      return normalized.left (digits).rightJustified (3, QChar {'0'});
+    }
+
     QString complete_cb_country_prefix_impl (QString const& callsign)
     {
       auto const normalized = callsign.trimmed ().toUpper ();
@@ -61,7 +116,7 @@ namespace Radio
             }
         }
 
-      return {};
+      return extended_cb_prefix (normalized);
     }
 
     QString cb_country_prefix_impl (QString const& callsign)
