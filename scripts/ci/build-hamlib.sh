@@ -16,6 +16,7 @@ if [[ $linkage == shared ]]; then
 else
   flags=(--disable-shared --enable-static)
 fi
-./configure --prefix="$prefix" "${flags[@]}" --without-readline --disable-cxx-binding
+./configure --prefix="$prefix" "${flags[@]}" --without-readline --disable-cxx-binding \
+  CFLAGS="-g -O2 -include assert.h"
 make -j"${BUILD_JOBS:-4}"
 make install
