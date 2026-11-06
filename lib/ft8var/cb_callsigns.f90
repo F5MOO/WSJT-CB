@@ -52,13 +52,14 @@ contains
   !   call = A + B + C, total length 3..11, characters 0-9 A-Z only
   !   A : starts with a digit, 1-3 digits and 0-2 letters (any order)
   !   B : starts and ends with a letter, 1-3 letters and 0-2 digits
-  !   C : 1-2 characters, each a digit or a letter
+  !   C : 1-3 characters, each a digit or a letter
+  !   optional '/' + 1-3 letters or digits after the call (11 characters max)
   ! Digit-leading amateur-style calls  d L{1,2} d L{0,3}  (9A1AA, 3DA0XX...)
   ! are never CB calls, so they keep their amateur handling.
   pure logical function is_extended_cb_callsign(text) result(valid)
     character(len=*), intent(in) :: text
     character(len=len(text)) :: call
-    integer :: i,j,n,k
+    integer :: i,n,k,islash
     valid=.false.
     call=trim(adjustl(text))
     n=len_trim(call)
@@ -66,6 +67,28 @@ contains
     do i=1,n
       k=iachar(call(i:i))
       if(k>=iachar('a') .and. k<=iachar('z')) call(i:i)=achar(k-32)
+    enddo
+    islash=index(call(1:n),'/')
+    if(islash==0) then
+      valid=ext_base(call(1:n))
+      return
+    endif
+    ! compound form: base + '/' + 1-3 letters or digits (11 characters max)
+    if(islash<4 .or. index(call(islash+1:n),'/')>0) return
+    if(n-islash<1 .or. n-islash>3) return
+    do i=islash+1,n
+      if(.not.(is_dig(call(i:i)) .or. is_let(call(i:i)))) return
+    enddo
+    valid=is_legacy_cb_callsign(call(1:islash-1)) .or. ext_base(call(1:islash-1))
+  end function
+
+  pure logical function ext_base(call) result(valid)
+    character(len=*), intent(in) :: call
+    integer :: i,j,n
+    valid=.false.
+    n=len(call)
+    if(n<3 .or. n>11) return
+    do i=1,n
       if(.not.(is_dig(call(i:i)) .or. is_let(call(i:i)))) return
     enddo
     if(.not.is_dig(call(1:1))) return
@@ -73,7 +96,7 @@ contains
     do i=1,n-2                       ! A = call(1:i)
       if(.not.seg_a(call(1:i))) cycle
       do j=i+1,n-1                   ! B = call(i+1:j), C = call(j+1:n)
-        if(n-j>2) cycle
+        if(n-j>3) cycle
         if(seg_b(call(i+1:j))) then
           valid=.true.
           return

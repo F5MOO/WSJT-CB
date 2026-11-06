@@ -46,10 +46,16 @@ namespace Radio
     //   call = A + B + C, total length 3..11, characters 0-9 A-Z only
     //   A : starts with a digit, 1-3 digits and 0-2 letters (any order)
     //   B : starts and ends with a letter, 1-3 letters and 0-2 digits
-    //   C : 1-2 characters, each a digit or a letter
+    //   C : 1-3 characters, each a digit or a letter
+    //   optional "/" + 1-3 letters or digits after the call (11 characters max)
     // Digit-leading amateur-style calls (digit, 1-2 letters, digit, 0-3
     // letters, e.g. 9A1AA or 3DA0XX) are never CB calls.
     QRegularExpression cb_extended_alphabet_re {R"(^[0-9A-Z]{3,11}$)"};
+    QRegularExpression cb_suffix_re {R"(^[0-9A-Z]{1,3}$)"};
+    // station callsign accepted in the settings: 1-9 letters or digits in any
+    // order, optionally followed by '/' and 1-3 letters or digits, 11
+    // characters maximum in total (the limit of an FT8 free callsign)
+    QRegularExpression station_callsign_re {R"(^[0-9A-Z]{1,9}(/[0-9A-Z]{1,3})?$)"};
     QRegularExpression cb_amateur_like_re {R"(^[0-9][A-Z]{1,2}[0-9][A-Z]{0,3}$)"};
 
     bool cb_segment_a (QString const& s)
@@ -82,7 +88,7 @@ namespace Radio
           if (!cb_segment_a (normalized.left (i))) continue;
           for (int j = i + 1; j <= n - 1; ++j)        // B = [i, j), C = [j, n)
             {
-              if (n - j > 2) continue;
+              if (n - j > 3) continue;
               if (cb_segment_b (normalized.mid (i, j - i))) return true;
             }
         }
@@ -114,6 +120,26 @@ namespace Radio
             {
               return match.captured (1).rightJustified (3, QChar {'0'});
             }
+        }
+
+      // compound form: any CB call (legacy or extended) + '/' + 1-3 letters or digits
+      auto const slash = normalized.indexOf (QChar {'/'});
+      if (slash >= 3 && slash == normalized.lastIndexOf (QChar {'/'})
+          && normalized.size () <= 11
+          && normalized.size () - slash - 1 >= 1 && normalized.size () - slash - 1 <= 3
+          && cb_suffix_re.match (normalized.mid (slash + 1)).hasMatch ())
+        {
+          auto const base = normalized.left (slash);
+          for (auto const& re : {cb_callsign_one_digit_suffix_re,
+                                 cb_callsign_multi_digit_suffix_re})
+            {
+              auto const match = re.match (base);
+              if (match.hasMatch ())
+                {
+                  return match.captured (1).rightJustified (3, QChar {'0'});
+                }
+            }
+          return extended_cb_prefix (base);
         }
 
       return extended_cb_prefix (normalized);
@@ -253,6 +279,14 @@ namespace Radio
   bool is_complete_cb_callsign (QString const& callsign)
   {
     return !complete_cb_country_prefix_impl (callsign).isEmpty ();
+  }
+
+  bool is_valid_station_callsign (QString const& callsign)
+  {
+    auto const normalized = callsign.trimmed ().toUpper ();
+    return (normalized.size () <= 11
+            && station_callsign_re.match (normalized).hasMatch ())
+      || is_complete_cb_callsign (normalized);
   }
 
   QString cb_country_prefix (QString const& callsign)

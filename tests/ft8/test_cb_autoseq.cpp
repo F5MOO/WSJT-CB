@@ -66,6 +66,12 @@ int main(int argc, char **argv) {
     for (auto const& call : {"<...>", "26A", "9A1AA", "3DA0XX", "K1ABC", "26AT1000", "1AT?"})
       require(!Radio::is_complete_cb_callsign(call), "invalid or incomplete CB callsign accepted");
     require(Radio::cb_country_prefix("26AT101") == "026", "CB country prefix changed");
+    for (auto const& call : {"14IFR007", "14IFR007/AC", "F5MOO", "ABC123XYZ", "ABCDEFGHI/A", "1AT106"})
+      require(Radio::is_valid_station_callsign(call), "valid station callsign rejected");
+    for (auto const& call : {"", "ABCDEFGHIJ", "ABCDEFGHI/AB", "14IFR007/ACDE", "ABC/", "/AB", "AB CD"})
+      require(!Radio::is_valid_station_callsign(call), "invalid station callsign accepted");
+    require(Radio::is_complete_cb_callsign("14IFR007/AC"), "compound CB callsign rejected");
+    require(Radio::cb_country_prefix("14IFR007/AC") == "014", "compound CB country prefix wrong");
     for (auto const& text : {"<1AT106> 26AT101", "26AT101 1AT106", "<1AT106> 161XZ085"}) {
       MainWindow w;
       w.m_bCallingCQ = true;

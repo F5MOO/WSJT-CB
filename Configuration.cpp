@@ -3082,7 +3082,7 @@ void Configuration::impl::set_rig_invariants ()
 
 bool Configuration::impl::has_valid_cb_callsign () const
 {
-  return Radio::is_complete_cb_callsign (ui_->callsign_line_edit->text ());
+  return Radio::is_valid_station_callsign (ui_->callsign_line_edit->text ());
 }
 
 void Configuration::impl::update_callsign_validation_ui ()
@@ -3108,7 +3108,7 @@ bool Configuration::impl::validate ()
       MessageBox::critical_message (
           this,
           tr ("Invalid callsign"),
-          tr ("My callsign must match the CB format: N{1,3}L{1,2}N{1,3} or N{1,3}L{1,2}/LL."));
+          tr ("My callsign must be 1 to 9 letters or digits, optionally followed by / and 1 to 3 letters or digits (11 characters maximum in total)."));
       return false;
     }
 

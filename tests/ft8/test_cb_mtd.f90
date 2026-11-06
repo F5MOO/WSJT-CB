@@ -4,12 +4,14 @@ program test_cb_mtd
   use packjt77var, only: unpack77var
   use ft8_mod1, only: mycall,hiscall
   implicit none
-  character(len=12), parameter :: valid_calls(*) = [character(len=12) :: &
+  character(len=14), parameter :: valid_calls(*) = [character(len=14) :: &
     '1A1','1AT106','26AT101','161XZ085','001AB123','1AT1000','999ZZ/ZZ', &
-    '26AT','1ABC1','14ABC12','12A3BC','123AB1C2','12AB34','123AB12CD','123AB1C2D3E','123AB1C2DE3']
-  character(len=12), parameter :: invalid_calls(*) = [character(len=12) :: &
-    '','26A','K1ABC','26AT1000','1AT?','1234AT1','1AT/ABC','1AT/A','<...>', &
-    '9A1AA','3DA0XX','3A2XY','12345AB','123A1B2C3D4','123AB123CDE']
+    '26AT','1ABC1','14ABC12','12A3BC','123AB1C2','12AB34','123AB12CD','123AB1C2D3E','123AB1C2DE3', &
+    '14IFR007','14IFR007/AC','14ABC12/A','1AT106/ABC','123AB12/AB','1AT/ABC','1AT/A','123A1B2C3D4']
+  character(len=14), parameter :: invalid_calls(*) = [character(len=14) :: &
+    '','26A','K1ABC','26AT1000','1AT?','1234AT1','1AT/ABCD','<...>', &
+    '9A1AA','3DA0XX','3A2XY','12345AB','123AB123CDE', &
+    '14IFR007/ACDE','9A1AA/P','K1ABC/P','14IFR007/AC/B','14IFR007/']
   character(len=37) :: msg,decoded
   character(len=77) :: bits
   integer :: i,j,i3,n3,bad
