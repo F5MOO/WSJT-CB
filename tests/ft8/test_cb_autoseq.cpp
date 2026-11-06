@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
   try {
     for (auto const& call : {"1AT106", "26AT101", "161XZ085", "001AB123", "1AT1000", "999ZZ/ZZ"})
       require(Radio::is_complete_cb_callsign(call), "valid CB callsign rejected");
-    for (auto const& call : {"<...>", "26AT", "K1ABC", "26AT1000", "1AT?"})
+    for (auto const& call : {"<...>", "26A", "9A1AA", "3DA0XX", "K1ABC", "26AT1000", "1AT?"})
       require(!Radio::is_complete_cb_callsign(call), "invalid or incomplete CB callsign accepted");
     require(Radio::cb_country_prefix("26AT101") == "026", "CB country prefix changed");
     for (auto const& text : {"<1AT106> 26AT101", "26AT101 1AT106", "<1AT106> 161XZ085"}) {
@@ -72,7 +72,7 @@ int main(int argc, char **argv) {
       w.auto_sequence(decode(text),25,50);
       require(w.accepted == 1, "valid CB answer did not start AutoSeq");
     }
-    for (auto const& text : {"<1AT106> <...>", "1AT106 26AT", "1AT106 K1ABC"}) {
+    for (auto const& text : {"<1AT106> <...>", "1AT106 26A", "1AT106 K1ABC"}) {
       MainWindow w;
       w.m_bCallingCQ = true;
       w.auto_sequence(decode(text),25,50);

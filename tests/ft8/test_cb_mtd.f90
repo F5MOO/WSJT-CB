@@ -5,9 +5,11 @@ program test_cb_mtd
   use ft8_mod1, only: mycall,hiscall
   implicit none
   character(len=12), parameter :: valid_calls(*) = [character(len=12) :: &
-    '1A1','1AT106','26AT101','161XZ085','001AB123','1AT1000','999ZZ/ZZ']
+    '1A1','1AT106','26AT101','161XZ085','001AB123','1AT1000','999ZZ/ZZ', &
+    '26AT','1ABC1','14ABC12','12A3BC','123AB1C2','12AB34','123AB12CD','123AB1C2D3E','123AB1C2DE3']
   character(len=12), parameter :: invalid_calls(*) = [character(len=12) :: &
-    '','26AT','K1ABC','26AT1000','1AT?','1234AT1','1ABC1','1AT/ABC','1AT/A','<...>']
+    '','26A','K1ABC','26AT1000','1AT?','1234AT1','1AT/ABC','1AT/A','<...>', &
+    '9A1AA','3DA0XX','3A2XY','12345AB','123A1B2C3D4','123AB123CDE']
   character(len=37) :: msg,decoded
   character(len=77) :: bits
   integer :: i,j,i3,n3,bad
@@ -50,7 +52,7 @@ program test_cb_mtd
       if(bad/=1) stop 6
     enddo
   enddo
-  if(is_cb_type4_message('CQ 26AT')) stop 7
+  if(is_cb_type4_message('CQ 26A')) stop 7
   if(is_cb_type4_message('<...> <...>')) stop 8
   if(is_cb_type4_message('<1AT106> 26AT101 GARBAGE')) stop 9
   if(is_cb_type4_message('CQ 26AT101 EXTRA')) stop 10
